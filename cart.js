@@ -219,6 +219,94 @@
         setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 2800);
     }
 
+    // ==================== Customization Modal ====================
+
+    function injectCustomModal() {
+        if (document.getElementById('customOptionsModal')) return;
+        const modalOverlay = document.createElement('div');
+        modalOverlay.className = 'custom-modal-overlay';
+        modalOverlay.id = 'customOptionsModal';
+        modalOverlay.innerHTML = `
+            <div class="custom-modal">
+                <div class="custom-modal-header">
+                    <div class="custom-modal-title">
+                        <span>✨</span>
+                        <span id="customModalProductName">Personalizá tu producto</span>
+                    </div>
+                    <button class="custom-modal-close" id="customModalClose">&times;</button>
+                </div>
+                <p class="custom-modal-subtitle">Seleccioná la opción de personalización que preferís:</p>
+                <div class="custom-options-list">
+                    <label class="custom-option-item">
+                        <input type="radio" name="customOption" value="Opción 1" checked>
+                        <span class="custom-option-label">Opción 1</span>
+                    </label>
+                    <label class="custom-option-item">
+                        <input type="radio" name="customOption" value="Opción 2">
+                        <span class="custom-option-label">Opción 2</span>
+                    </label>
+                    <label class="custom-option-item">
+                        <input type="radio" name="customOption" value="Opción 3">
+                        <span class="custom-option-label">Opción 3</span>
+                    </label>
+                </div>
+                <div class="custom-modal-actions">
+                    <button class="custom-modal-btn-confirm" id="customModalConfirm">Confirmar y Agregar al Carrito</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modalOverlay);
+
+        document.getElementById('customModalClose').addEventListener('click', closeCustomModal);
+        modalOverlay.addEventListener('click', e => {
+            if (e.target === modalOverlay) closeCustomModal();
+        });
+    }
+
+    let pendingProductData = null;
+
+    function openCustomModal(productData, btnElement) {
+        injectCustomModal();
+        pendingProductData = { data: productData, btn: btnElement };
+        const modalName = document.getElementById('customModalProductName');
+        if (modalName) modalName.textContent = productData.name;
+
+        const modal = document.getElementById('customOptionsModal');
+        if (modal) modal.classList.add('active');
+
+        const confirmBtn = document.getElementById('customModalConfirm');
+        const newConfirm = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
+
+        newConfirm.addEventListener('click', () => {
+            const selectedRadio = document.querySelector('input[name="customOption"]:checked');
+            const selectedOption = selectedRadio ? selectedRadio.value : 'Opción 1';
+
+            if (pendingProductData) {
+                const itemToSave = {
+                    ...pendingProductData.data,
+                    id: `${pendingProductData.data.id}-${selectedOption.replace(/\s+/g, '-').toLowerCase()}`,
+                    name: `${pendingProductData.data.name} (${selectedOption})`
+                };
+                addItem(itemToSave);
+
+                if (pendingProductData.btn) {
+                    const btn = pendingProductData.btn;
+                    btn.classList.add('added');
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span>¡Agregado!</span>`;
+                    setTimeout(() => { btn.classList.remove('added'); btn.innerHTML = orig; }, 1500);
+                }
+            }
+            closeCustomModal();
+        });
+    }
+
+    function closeCustomModal() {
+        const modal = document.getElementById('customOptionsModal');
+        if (modal) modal.classList.remove('active');
+        pendingProductData = null;
+    }
+
     // ==================== Add-to-Cart Buttons ====================
 
     function wireAddButtons() {
@@ -228,18 +316,28 @@
                 const card = btn.closest('.product-card');
                 if (!card?.dataset.id) return;
 
-                addItem({
+                const isCustomizable = Array.from(card.querySelectorAll('.badge')).some(b => 
+                    b.textContent.toLowerCase().includes('personaliz')
+                ) || card.dataset.customizable === 'true';
+
+                const productData = {
                     id: card.dataset.id,
                     name: card.querySelector('.product-name')?.textContent || 'Producto',
                     price: parseFloat(card.dataset.price) || 0,
                     icon: card.dataset.icon || '📦'
-                });
+                };
 
-                // Feedback animation
-                btn.classList.add('added');
-                const orig = btn.innerHTML;
-                btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span>¡Agregado!</span>`;
-                setTimeout(() => { btn.classList.remove('added'); btn.innerHTML = orig; }, 1500);
+                if (isCustomizable) {
+                    openCustomModal(productData, btn);
+                } else {
+                    addItem(productData);
+
+                    // Feedback animation
+                    btn.classList.add('added');
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span>¡Agregado!</span>`;
+                    setTimeout(() => { btn.classList.remove('added'); btn.innerHTML = orig; }, 1500);
+                }
             });
         });
     }
