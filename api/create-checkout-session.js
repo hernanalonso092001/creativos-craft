@@ -6,9 +6,25 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 module.exports = async (req, res) => {
+    // CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    // Handle preflight
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
     // Solo aceptar POST
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método no permitido' });
+    }
+
+    // Verificar que Stripe está configurado
+    if (!process.env.STRIPE_SECRET_KEY) {
+        console.error('❌ STRIPE_SECRET_KEY no está configurada');
+        return res.status(500).json({ error: 'Error de configuración del servidor.' });
     }
 
     try {
@@ -30,7 +46,7 @@ module.exports = async (req, res) => {
             quantity: item.quantity,
         }));
 
-        const domain = process.env.DOMAIN || 'https://creativoscraft.com';
+        const domain = process.env.DOMAIN || `https://${req.headers.host}`;
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
