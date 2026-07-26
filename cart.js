@@ -326,16 +326,20 @@
                     body: JSON.stringify({ items: cartItems }),
                 });
 
+                const data = await res.json();
+
                 if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.error || 'Error del servidor');
+                    throw new Error(data.error || `Error del servidor (${res.status})`);
                 }
 
-                const { url } = await res.json();
-                window.location.href = url;
+                if (!data.url) {
+                    throw new Error('No se recibió URL de pago');
+                }
+
+                window.location.href = data.url;
             } catch (err) {
                 console.error('Stripe error:', err);
-                showToast('❌ Error al conectar con Stripe. Intentá de nuevo.');
+                showToast(`❌ ${err.message || 'Error al conectar con Stripe. Intentá de nuevo.'}`);
                 btn.disabled = false;
                 btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span>Pagar con Stripe</span>';
                 btn.classList.remove('btn-loading');
