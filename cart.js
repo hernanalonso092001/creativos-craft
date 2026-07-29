@@ -239,15 +239,27 @@
                 <div class="custom-options-list">
                     <label class="custom-option-item">
                         <input type="radio" name="customOption" value="Opción 1" checked>
-                        <span class="custom-option-label">Opción 1</span>
+                        <img src="img/opcion1.jpg" alt="Opción 1" class="custom-option-img">
+                        <div class="custom-option-text">
+                            <span class="custom-option-label">Opción 1</span>
+                            <span class="custom-option-desc">Diseño estándar con colores vibrantes y acabado brillante.</span>
+                        </div>
                     </label>
                     <label class="custom-option-item">
                         <input type="radio" name="customOption" value="Opción 2">
-                        <span class="custom-option-label">Opción 2</span>
+                        <img src="img/opcion2.jpg" alt="Opción 2" class="custom-option-img">
+                        <div class="custom-option-text">
+                            <span class="custom-option-label">Opción 2</span>
+                            <span class="custom-option-desc">Textura suave con gradientes de tonos cálidos y pastel.</span>
+                        </div>
                     </label>
                     <label class="custom-option-item">
                         <input type="radio" name="customOption" value="Opción 3">
-                        <span class="custom-option-label">Opción 3</span>
+                        <img src="img/opcion3.jpg" alt="Opción 3" class="custom-option-img">
+                        <div class="custom-option-text">
+                            <span class="custom-option-label">Opción 3</span>
+                            <span class="custom-option-desc">Estilo geométrico moderno con contrastes marcados y neón.</span>
+                        </div>
                     </label>
                 </div>
                 <div class="custom-modal-actions">
